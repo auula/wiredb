@@ -37,13 +37,12 @@ import (
 	"github.com/spaolacci/murmur3"
 )
 
-const RWCA = os.O_RDWR | os.O_CREATE | os.O_APPEND
-
 const (
-	_  = 1 << (10 * iota) // skip iota = 0
-	KB                    // 2^10 = 1024
-	MB                    // 2^20 = 1048576
-	GB                    // 2^30 = 1073741824
+	_             = 1 << (10 * iota) // skip iota = 0
+	KB                               // 2^10 = 1024
+	MB                               // 2^20 = 1048576
+	GB                               // 2^30 = 1073741824
+	appendOnlyLog = os.O_RDWR | os.O_CREATE | os.O_APPEND
 )
 
 type GC_STATE = int8 // Region garbage collection state
@@ -319,7 +318,7 @@ func (lfs *LogStructuredFS) createActiveRegion() error {
 		return fmt.Errorf("failed to new active region name: %w", err)
 	}
 
-	active, err := os.OpenFile(filepath.Join(lfs.directory, fileName), RWCA, fsPerm)
+	active, err := os.OpenFile(filepath.Join(lfs.directory, fileName), appendOnlyLog, fsPerm)
 	if err != nil {
 		return fmt.Errorf("failed to create active region: %w", err)
 	}

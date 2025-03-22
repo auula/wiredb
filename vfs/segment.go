@@ -45,7 +45,7 @@ var KindToString = map[Kind]string{
 	Unknown: "unknown",
 }
 
-// | DEL 1 | KIND 1 | EAT 8 | CAT 8 | KLEN 8 | VLEN 8 | KEY ? | VALUE ? | CRC32 4 |
+// | DEL 1 | KIND 1 | EAT 8 | CAT 8 | KLEN 4 | VLEN 4 | KEY ? | VALUE ? | CRC32 4 |
 type Segment struct {
 	Tombstone int8
 	Type      Kind
