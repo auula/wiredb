@@ -442,7 +442,7 @@ func (lfs *LogStructuredFS) scanAndRecoverIndexs() error {
 	if len(lfs.regions) >= 2 && len(ckpts) > 0 {
 		err := scanAndRecoverCheckpoint(ckpts, lfs.regions, lfs.indexs)
 		if err != nil {
-			return fmt.Errorf("failed to recover data from checkpoint: %w", err)
+			return err
 		}
 	}
 
@@ -659,9 +659,9 @@ func (lfs *LogStructuredFS) CloseFS() error {
 			// In-memory indexes must be persisted
 			inner := lfs.ExportSnapshotIndex()
 			if inner != nil {
-				return fmt.Errorf("failed to close LogStructuredFS: %w", errors.Join(err, inner))
+				return fmt.Errorf("failed to export shapshot index: %w", errors.Join(err, inner))
 			}
-			return fmt.Errorf("failed to close region file: %w", err)
+			return fmt.Errorf("failed to close storage: %w", err)
 		}
 	}
 
@@ -1360,7 +1360,7 @@ func scanAndRecoverCheckpoint(files []string, regions map[uint64]*os.File, index
 
 	err = recoveryIndex(file, indexs)
 	if err != nil {
-		return fmt.Errorf("failed to recover checkpoint: %w", err)
+		return fmt.Errorf("failed to recover data from checkpoint: %w", err)
 	}
 
 	// 由于检查点不是实时的索引快照，再从检查点之后数据文件进行恢复完整数据
