@@ -26,7 +26,7 @@ import (
 
 var storage *vfs.LogStructuredFS
 
-func GetListController(ctx *gin.Context) {
+func GetCollectionController(ctx *gin.Context) {
 	_, seg, err := storage.FetchSegment(ctx.Param("key"))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
@@ -35,7 +35,7 @@ func GetListController(ctx *gin.Context) {
 		return
 	}
 
-	list, err := seg.ToList()
+	collection, err := seg.ToCollection()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
@@ -44,21 +44,21 @@ func GetListController(ctx *gin.Context) {
 	}
 
 	ctx.IndentedJSON(http.StatusOK, gin.H{
-		"list": list.List,
+		"collection": collection.Collection,
 	})
 }
 
-func PutListController(ctx *gin.Context) {
+func PutCollectionController(ctx *gin.Context) {
 	key := ctx.Param("key")
 
-	var list types.List
-	err := ctx.ShouldBindJSON(&list)
+	var collection types.Collection
+	err := ctx.ShouldBindJSON(&collection)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	seg, err := vfs.NewSegment(key, list, list.TTL)
+	seg, err := vfs.NewSegment(key, collection, collection.TTL)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -75,7 +75,7 @@ func PutListController(ctx *gin.Context) {
 	})
 }
 
-func DeleteListController(ctx *gin.Context) {
+func DeleteCollectionController(ctx *gin.Context) {
 	key := ctx.Param("key")
 
 	err := storage.DeleteSegment(key)
@@ -421,7 +421,7 @@ func QueryController(ctx *gin.Context) {
 
 	ctx.IndentedJSON(http.StatusOK, gin.H{
 		"type": vfs.KindToString[seg.Type],
-		"bson": seg.ToBSON(),
+		"data": seg.ToBytes(),
 		"ttl":  seg.TTL(),
 		"mvcc": version,
 	})

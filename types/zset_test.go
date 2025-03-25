@@ -120,11 +120,11 @@ func TestZSet_Clear(t *testing.T) {
 	assert.Empty(t, zset.ZSet)
 }
 
-func TestZSet_ToBSON(t *testing.T) {
+func TestZSet_ToBytes(t *testing.T) {
 	zset := NewZSet()
 	zset.Add("item1", 10.5)
 
-	// Test ToBSON
-	_, err := zset.ToBSON()
+	// Test ToBytes
+	_, err := zset.ToBytes()
 	assert.NoError(t, err)
 }

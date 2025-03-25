@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"sync/atomic"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 // Number 结构体，表示带有数值的类型，支持原子操作
@@ -32,8 +32,8 @@ func NewNumber(num int64) *Number {
 }
 
 // ToBSON 将 Number 序列化为 BSON
-func (num Number) ToBSON() ([]byte, error) {
-	return bson.Marshal(num)
+func (num Number) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(num.Value)
 }
 
 func (num Number) ToJSON() ([]byte, error) {

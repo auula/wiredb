@@ -37,7 +37,7 @@ func TestNewSegment(t *testing.T) {
 	assert.NotNil(t, segment)                                 // Ensure segment is created
 	assert.Equal(t, "mock-key", string(segment.Key))          // Ensure the key is set correctly
 	assert.Equal(t, uint32(len("mock-key")), segment.KeySize) // Ensure the key size is correct
-	assert.Equal(t, uint32(21), segment.ValueSize)            // Ensure the value size is correct
+	assert.Equal(t, uint32(15), segment.ValueSize)            // Ensure the value size is correct
 }
 
 func TestNewTombstoneSegment(t *testing.T) {
@@ -65,7 +65,7 @@ func TestSegmentSize(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Ensure the size is calculated correctly
-	assert.Equal(t, uint32(59), segment.Size())
+	assert.Equal(t, uint32(53), segment.Size())
 }
 
 func TestToSet(t *testing.T) {
@@ -145,18 +145,18 @@ func TestToText(t *testing.T) {
 // TestToList 测试 ToList 方法
 func TestToList(t *testing.T) {
 	// 创建 List 数据
-	listData := types.List{
-		List: []any{"item1", "item2", 123},
+	listData := types.Collection{
+		Collection: []any{"item1", "item2", int8(123)},
 	}
 
 	segment, err := NewSegment("test-key-01", listData, 0)
 	assert.NoError(t, err)
 
 	// 测试 ToList 方法
-	result, err := segment.ToList()
+	result, err := segment.ToCollection()
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, listData.List, result.List)
+	assert.Equal(t, listData.Collection, result.Collection)
 }
 
 // TestToTable 测试 ToTable 方法
@@ -165,7 +165,7 @@ func TestToTable(t *testing.T) {
 	tablesData := types.Table{
 		Table: map[string]interface{}{
 			"key1": "value1",
-			"key2": 42,
+			"key2": int8(42),
 		},
 	}
 

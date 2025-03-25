@@ -1,0 +1,14 @@
+{
+    "table": {
+        "user_id": "123",
+        "profile": {
+            "name": "Alice",
+            "email": "alice@example.com",
+            "address": "123 Main St, NY, USA",
+            "preferences": {
+                "theme": "dark",
+                "notifications": true
+            }
+        }
+    }
+}

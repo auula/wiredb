@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/auula/wiredb/types"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Kind int8
@@ -28,24 +28,24 @@ type Kind int8
 const (
 	Set Kind = iota
 	ZSet
-	List
 	Text
 	Table
 	Number
 	Unknown
+	Collection
 )
 
 var KindToString = map[Kind]string{
-	Set:     "set",
-	ZSet:    "zset",
-	List:    "list",
-	Text:    "text",
-	Table:   "table",
-	Number:  "number",
-	Unknown: "unknown",
+	Set:        "set",
+	ZSet:       "zset",
+	Text:       "text",
+	Table:      "table",
+	Number:     "number",
+	Unknown:    "unknown",
+	Collection: "collection",
 }
 
-// | DEL 1 | KIND 1 | EAT 8 | CAT 8 | KLEN 8 | VLEN 8 | KEY ? | VALUE ? | CRC32 4 |
+// | DEL 1 | KIND 1 | EAT 8 | CAT 8 | KLEN 4 | VLEN 4 | KEY ? | VALUE ? | CRC32 4 |
 type Segment struct {
 	Tombstone int8
 	Type      Kind
@@ -58,22 +58,17 @@ type Segment struct {
 }
 
 type Serializable interface {
-	ToBSON() ([]byte, error)
+	ToBytes() ([]byte, error)
 }
 
 // NewSegment 使用数据类型初始化并返回对应的 Segment
 func NewSegment(key string, data Serializable, ttl uint64) (*Segment, error) {
-	kind, err := toKind(data)
-	if err != nil {
-		return nil, fmt.Errorf("unsupported data type: %w", err)
-	}
-
 	timestamp, expiredAt := uint64(time.Now().UnixNano()), uint64(0)
 	if ttl > 0 {
 		expiredAt = uint64(time.Now().Add(time.Second * time.Duration(ttl)).UnixNano())
 	}
 
-	bytes, err := data.ToBSON()
+	bytes, err := data.ToBytes()
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +81,7 @@ func NewSegment(key string, data Serializable, ttl uint64) (*Segment, error) {
 
 	// 如果类型不匹配，则返回错误
 	return &Segment{
-		Type:      kind,
+		Type:      toKind(data),
 		Tombstone: 0,
 		CreatedAt: timestamp,
 		ExpiredAt: expiredAt,
@@ -126,7 +121,7 @@ func (s *Segment) ToSet() (*types.Set, error) {
 		return nil, fmt.Errorf("not support conversion to set type")
 	}
 	var set types.Set
-	err := bson.Unmarshal(s.Value, &set.Set)
+	err := msgpack.Unmarshal(s.Value, &set.Set)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +133,7 @@ func (s *Segment) ToZSet() (*types.ZSet, error) {
 		return nil, fmt.Errorf("not support conversion to zset type")
 	}
 	var zset types.ZSet
-	err := bson.Unmarshal(s.Value, &zset.ZSet)
+	err := msgpack.Unmarshal(s.Value, &zset.ZSet)
 	if err != nil {
 		return nil, err
 	}
@@ -150,23 +145,23 @@ func (s *Segment) ToText() (*types.Text, error) {
 		return nil, fmt.Errorf("not support conversion to text type")
 	}
 	var text types.Text
-	err := bson.Unmarshal(s.Value, &text)
+	err := msgpack.Unmarshal(s.Value, &text.Content)
 	if err != nil {
 		return nil, err
 	}
 	return &text, nil
 }
 
-func (s *Segment) ToList() (*types.List, error) {
-	if s.Type != List {
-		return nil, fmt.Errorf("not support conversion to list type")
+func (s *Segment) ToCollection() (*types.Collection, error) {
+	if s.Type != Collection {
+		return nil, fmt.Errorf("not support conversion to collection type")
 	}
-	var list types.List
-	err := bson.Unmarshal(s.Value, &list)
+	var collection types.Collection
+	err := msgpack.Unmarshal(s.Value, &collection.Collection)
 	if err != nil {
 		return nil, err
 	}
-	return &list, nil
+	return &collection, nil
 }
 
 func (s *Segment) ToTable() (*types.Table, error) {
@@ -174,7 +169,7 @@ func (s *Segment) ToTable() (*types.Table, error) {
 		return nil, fmt.Errorf("not support conversion to table type")
 	}
 	var table types.Table
-	err := bson.Unmarshal(s.Value, &table)
+	err := msgpack.Unmarshal(s.Value, &table.Table)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +181,7 @@ func (s *Segment) ToNumber() (*types.Number, error) {
 		return nil, fmt.Errorf("not support conversion to number type")
 	}
 	var number types.Number
-	err := bson.Unmarshal(s.Value, &number)
+	err := msgpack.Unmarshal(s.Value, &number.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -202,28 +197,27 @@ func (s *Segment) TTL() int64 {
 }
 
 // 将类型映射为 Kind 的辅助函数
-func toKind(data Serializable) (Kind, error) {
+func toKind(data Serializable) Kind {
 	switch data.(type) {
 	case types.Set:
-		return Set, nil
+		return Set
 	case types.ZSet:
-		return ZSet, nil
-	case types.List:
-		return List, nil
+		return ZSet
 	case types.Text:
-		return Text, nil
+		return Text
 	case types.Table:
-		return Table, nil
+		return Table
 	case types.Number:
-		return Number, nil
+		return Number
 	case *types.Number:
-		return Number, nil
-	default:
-		return Unknown, errors.New("unknown data type")
+		return Number
+	case types.Collection:
+		return Collection
 	}
+	return Unknown
 }
 
-func (s *Segment) ToBSON() []byte {
+func (s *Segment) ToBytes() []byte {
 	return s.Value
 }
 
@@ -241,12 +235,6 @@ func (s *Segment) ToJSON() ([]byte, error) {
 			return nil, err
 		}
 		return zset.ToJSON()
-	case List:
-		list, err := s.ToList()
-		if err != nil {
-			return nil, err
-		}
-		return list.ToJSON()
 	case Text:
 		text, err := s.ToText()
 		if err != nil {
@@ -265,6 +253,12 @@ func (s *Segment) ToJSON() ([]byte, error) {
 			return nil, err
 		}
 		return tab.ToJSON()
+	case Collection:
+		collection, err := s.ToCollection()
+		if err != nil {
+			return nil, err
+		}
+		return collection.ToJSON()
 	}
 
 	return nil, errors.New("unknown data type")

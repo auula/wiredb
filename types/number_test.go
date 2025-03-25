@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 func TestNumberOperations(t *testing.T) {
@@ -48,11 +48,11 @@ func TestNumberOperations(t *testing.T) {
 	assert.False(t, success)
 	assert.Equal(t, int64(200), num.Get())
 
-	bsonData, err := num.ToBSON()
+	data, err := num.ToBytes()
 	assert.NoError(t, err)
 
 	var decodedNumber Number
-	err = bson.Unmarshal(bsonData, &decodedNumber)
+	err = msgpack.Unmarshal(data, &decodedNumber.Value)
 	assert.NoError(t, err)
 	assert.Equal(t, num.Get(), decodedNumber.Get())
 }

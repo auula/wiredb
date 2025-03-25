@@ -20,7 +20,7 @@ import (
 	"math"
 	"strconv"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Double struct {
@@ -83,8 +83,8 @@ func (d *Double) String() string {
 }
 
 // BSON 序列化
-func (d Double) ToBSON() ([]byte, error) {
-	return bson.Marshal(d)
+func (d Double) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(d)
 }
 
 func (d Double) ToJSON() ([]byte, error) {

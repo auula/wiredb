@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"sort"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 // ZSet 是一个实现有序集合的结构
@@ -110,8 +110,8 @@ func (z *ZSet) Clear() {
 	z.sortedScores = make([]string, 0)
 }
 
-func (zs ZSet) ToBSON() ([]byte, error) {
-	return bson.Marshal(zs.ZSet)
+func (zs ZSet) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(zs.ZSet)
 }
 
 func (zs ZSet) ToJSON() ([]byte, error) {

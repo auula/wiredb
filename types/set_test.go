@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 func TestNewSet(t *testing.T) {
@@ -80,18 +80,18 @@ func TestSet_Clear(t *testing.T) {
 	assert.Equal(t, uint64(0), set.TTL) // TTL 应重置为 0
 }
 
-func TestSet_ToBSON(t *testing.T) {
+func TestSet_ToBytes(t *testing.T) {
 	set := NewSet()
 	set.Add("x")
 	set.Add("y")
 
-	data, err := set.ToBSON()
+	data, err := set.ToBytes()
 	assert.NoError(t, err)
-	assert.NotEmpty(t, data) // 确保序列化后的 BSON 不为空
+	assert.NotEmpty(t, data) // 确保序列化后的数据不为空
 
 	// 反序列化回 Set 进行验证
 	var decodedSet map[string]bool
-	err = bson.Unmarshal(data, &decodedSet)
+	err = msgpack.Unmarshal(data, &decodedSet)
 	assert.NoError(t, err)
 	assert.Equal(t, set.Set, decodedSet) // 确保反序列化后的数据与原始数据一致
 }

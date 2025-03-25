@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 func TestNewTables(t *testing.T) {
@@ -104,18 +104,18 @@ func TestTables_Clear(t *testing.T) {
 	assert.Equal(t, uint64(0), tables.TTL) // 确保 TTL 也被重置
 }
 
-func TestTables_ToBSON(t *testing.T) {
+func TestTables_ToBytes(t *testing.T) {
 	tables := NewTable()
-	tables.AddItem("x", "valueX")
-	tables.AddItem("y", 123)
+	tables.AddItem("x", "value")
+	tables.AddItem("y", int8(123))
 
-	data, err := tables.ToBSON()
+	data, err := tables.ToBytes()
 	assert.NoError(t, err)
-	assert.NotEmpty(t, data) // 确保序列化后的 BSON 不为空
+	assert.NotEmpty(t, data) // 确保序列化后的数据不为空
 
 	// 反序列化回 Tables 进行验证
 	var decodedTables Table
-	err = bson.Unmarshal(data, &decodedTables)
+	err = msgpack.Unmarshal(data, &decodedTables.Table)
 	assert.NoError(t, err)
 	assert.Equal(t, tables.Table, decodedTables.Table) // 确保反序列化后的数据与原始数据一致
 }

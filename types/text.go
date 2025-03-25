@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Text struct {
@@ -55,8 +55,8 @@ func (text *Text) Clear() {
 	text.Content = ""
 }
 
-func (text Text) ToBSON() ([]byte, error) {
-	return bson.Marshal(text)
+func (text Text) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(text.Content)
 }
 
 func (text Text) ToJSON() ([]byte, error) {

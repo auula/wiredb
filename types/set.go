@@ -17,7 +17,7 @@ package types
 import (
 	"encoding/json"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Set struct {
@@ -58,8 +58,8 @@ func (s *Set) Clear() {
 	s.Set = make(map[string]bool)
 }
 
-func (s Set) ToBSON() ([]byte, error) {
-	return bson.Marshal(s.Set)
+func (s Set) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(s.Set)
 }
 
 func (s Set) ToJSON() ([]byte, error) {

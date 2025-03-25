@@ -65,14 +65,6 @@ func init() {
 		zset.PUT("/:key", PutZsetController)
 		zset.DELETE("/:key", DeleteZsetController)
 	}
-
-	list := root.Group("/list")
-	{
-		list.GET("/:key", GetListController)
-		list.PUT("/:key", PutListController)
-		list.DELETE("/:key", DeleteListController)
-	}
-
 	text := root.Group("/text")
 	{
 		text.GET("/:key", GetTextController)
@@ -92,6 +84,13 @@ func init() {
 		number.GET("/:key", GetNumberController)
 		number.PUT("/:key", PutNumberController)
 		number.DELETE("/:key", DeleteNumberController)
+	}
+
+	collection := root.Group("/collection")
+	{
+		collection.GET("/:key", GetCollectionController)
+		collection.PUT("/:key", PutCollectionController)
+		collection.DELETE("/:key", DeleteCollectionController)
 	}
 }
 

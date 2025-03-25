@@ -17,7 +17,7 @@ package types
 import (
 	"encoding/json"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Table struct {
@@ -100,8 +100,8 @@ func (tab *Table) Size() int {
 	return len(tab.Table)
 }
 
-func (tab Table) ToBSON() ([]byte, error) {
-	return bson.Marshal(tab)
+func (tab Table) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(tab.Table)
 }
 
 func (tab Table) ToJSON() ([]byte, error) {
