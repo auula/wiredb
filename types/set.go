@@ -21,7 +21,7 @@ import (
 )
 
 type Set struct {
-	Set map[string]bool `json:"set" bson:"set" binding:"required"`
+	Set map[string]bool `json:"set" msgpack:"set" binding:"required"`
 	TTL uint64          `json:"ttl,omitempty"`
 }
 

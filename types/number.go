@@ -23,7 +23,7 @@ import (
 
 // Number 结构体，表示带有数值的类型，支持原子操作
 type Number struct {
-	Value int64  `json:"number" bson:"number" binding:"required"`
+	Value int64  `json:"number" msgpack:"number" binding:"required"`
 	TTL   uint64 `json:"ttl,omitempty"`
 }
 
@@ -31,7 +31,7 @@ func NewNumber(num int64) *Number {
 	return &Number{Value: num}
 }
 
-// ToBSON 将 Number 序列化为 BSON
+// ToBSON 将 Number 序列化为 msgpack
 func (num Number) ToBytes() ([]byte, error) {
 	return msgpack.Marshal(num.Value)
 }

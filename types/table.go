@@ -21,7 +21,7 @@ import (
 )
 
 type Table struct {
-	Table map[string]any `json:"table" bson:"table" binding:"required"`
+	Table map[string]any `json:"table" msgpack:"table" binding:"required"`
 	TTL   uint64         `json:"ttl,omitempty"`
 }
 

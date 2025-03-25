@@ -22,7 +22,7 @@ import (
 )
 
 type Collection struct {
-	Collection []any  `json:"collection" bson:"collection" binding:"required"`
+	Collection []any  `json:"collection" msgpack:"collection" binding:"required"`
 	TTL        uint64 `json:"ttl,omitempty"`
 }
 

@@ -24,7 +24,7 @@ import (
 )
 
 type Double struct {
-	Value float64 `json:"double" bson:"double" binding:"required"`
+	Value float64 `json:"double" msgpack:"double" binding:"required"`
 	TTL   uint64  `json:"ttl,omitempty"`
 }
 

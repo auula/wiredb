@@ -22,7 +22,7 @@ import (
 )
 
 type Text struct {
-	Content string `json:"content" bson:"content" binding:"required"`
+	Content string `json:"content" msgpack:"content" binding:"required"`
 	TTL     uint64 `json:"ttl,omitempty"`
 }
 
