@@ -32,7 +32,7 @@ func TestNewSegment(t *testing.T) {
 	}
 
 	// Create a new segment for the Set type
-	segment, err := NewSegment("mock-key", set, 1000)
+	segment, err := NewSegment("mock-key", &set, 1000)
 	assert.NoError(t, err)                                    // Ensure no error
 	assert.NotNil(t, segment)                                 // Ensure segment is created
 	assert.Equal(t, "mock-key", string(segment.Key))          // Ensure the key is set correctly
@@ -61,7 +61,7 @@ func TestSegmentSize(t *testing.T) {
 	}
 
 	// Create a segment for the Set type
-	segment, err := NewSegment("mock-key", set, 1000)
+	segment, err := NewSegment("mock-key", &set, 1000)
 	assert.NoError(t, err)
 
 	// Ensure the size is calculated correctly
@@ -77,7 +77,7 @@ func TestToSet(t *testing.T) {
 		},
 		TTL: uint64(0),
 	}
-	segment, err := NewSegment("mock-key", setData, 1000)
+	segment, err := NewSegment("mock-key", &setData, 1000)
 	assert.NoError(t, err)
 
 	// Convert the segment to Set
@@ -94,7 +94,7 @@ func TestTTL(t *testing.T) {
 			"item2": true,
 		},
 	}
-	segment, err := NewSegment("mock-key", set, 1) // TTL = 1 second
+	segment, err := NewSegment("mock-key", &set, 1) // TTL = 1 second
 	assert.NoError(t, err)
 
 	// Wait 1 second
@@ -115,7 +115,7 @@ func TestToZSet(t *testing.T) {
 		},
 	}
 
-	segment, err := NewSegment("test-key-01", zsetData, 0)
+	segment, err := NewSegment("test-key-01", &zsetData, 0)
 	assert.NoError(t, err)
 
 	// 测试 ToZSet 方法
@@ -132,7 +132,7 @@ func TestToText(t *testing.T) {
 		Content: "Hello, World!",
 	}
 
-	segment, err := NewSegment("test-key-01", textData, 0)
+	segment, err := NewSegment("test-key-01", &textData, 0)
 	assert.NoError(t, err)
 
 	// 测试 ToText 方法
@@ -149,7 +149,7 @@ func TestToList(t *testing.T) {
 		Collection: []any{"item1", "item2", int8(123)},
 	}
 
-	segment, err := NewSegment("test-key-01", listData, 0)
+	segment, err := NewSegment("test-key-01", &listData, 0)
 	assert.NoError(t, err)
 
 	// 测试 ToList 方法
@@ -169,7 +169,7 @@ func TestToTable(t *testing.T) {
 		},
 	}
 
-	segment, err := NewSegment("test-key-01", tablesData, 0)
+	segment, err := NewSegment("test-key-01", &tablesData, 0)
 	assert.NoError(t, err)
 
 	// 测试 ToTable 方法

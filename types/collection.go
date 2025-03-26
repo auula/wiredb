@@ -81,10 +81,10 @@ func (cle *Collection) Clear() {
 	cle.Collection = make([]any, 0)
 }
 
-func (cle Collection) ToBytes() ([]byte, error) {
-	return msgpack.Marshal(cle.Collection)
+func (cle *Collection) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(&cle.Collection)
 }
 
 func (cle *Collection) ToJSON() ([]byte, error) {
-	return json.Marshal(cle.Collection)
+	return json.Marshal(&cle.Collection)
 }

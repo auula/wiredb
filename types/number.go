@@ -32,12 +32,12 @@ func NewNumber(num int64) *Number {
 }
 
 // ToBSON 将 Number 序列化为 msgpack
-func (num Number) ToBytes() ([]byte, error) {
-	return msgpack.Marshal(num.Value)
+func (num *Number) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(&num.Value)
 }
 
-func (num Number) ToJSON() ([]byte, error) {
-	return json.Marshal(num.Value)
+func (num *Number) ToJSON() ([]byte, error) {
+	return json.Marshal(&num.Value)
 }
 
 // Add 以原子方式增加值

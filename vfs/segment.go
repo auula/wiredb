@@ -199,19 +199,17 @@ func (s *Segment) TTL() int64 {
 // 将类型映射为 Kind 的辅助函数
 func toKind(data Serializable) Kind {
 	switch data.(type) {
-	case types.Set:
+	case *types.Set:
 		return Set
-	case types.ZSet:
+	case *types.ZSet:
 		return ZSet
-	case types.Text:
+	case *types.Text:
 		return Text
-	case types.Table:
+	case *types.Table:
 		return Table
-	case types.Number:
-		return Number
 	case *types.Number:
 		return Number
-	case types.Collection:
+	case *types.Collection:
 		return Collection
 	}
 	return Unknown

@@ -193,7 +193,7 @@ func TestVFSWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	seg, err := NewSegment("key-01", tables, tables.TTL)
+	seg, err := NewSegment("key-01", &tables, tables.TTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -254,7 +254,7 @@ func BenchmarkVFSWrite(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		key := fmt.Sprintf("key-%d", i)
 
-		seg, err := NewSegment(key, tables, tables.TTL)
+		seg, err := NewSegment(key, &tables, tables.TTL)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -327,7 +327,7 @@ func TestUpdateSegmentWithCAS_Concurrent(t *testing.T) {
 	}
 
 	key := "key-01"
-	seg, err := NewSegment(key, tables, tables.TTL)
+	seg, err := NewSegment(key, &tables, tables.TTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,7 +356,7 @@ func TestUpdateSegmentWithCAS_Concurrent(t *testing.T) {
 			}
 
 			// 2. 创建新的 `Segment`
-			newseg, err := NewSegment(key, tables, tables.TTL)
+			newseg, err := NewSegment(key, &tables, tables.TTL)
 			if err != nil {
 				t.Errorf("goroutine %d: failed to create segment: %v", id, err)
 				return
@@ -493,7 +493,7 @@ func TestVFSOpertions(t *testing.T) {
 	err = json.Unmarshal([]byte(data), &tables)
 	assert.NoError(t, err)
 
-	seg, err := NewSegment("key-01", tables, tables.TTL)
+	seg, err := NewSegment("key-01", &tables, tables.TTL)
 	assert.NoError(t, err)
 
 	err = fss.PutSegment("key-01", seg)

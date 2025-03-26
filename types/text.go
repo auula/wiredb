@@ -55,10 +55,10 @@ func (text *Text) Clear() {
 	text.Content = ""
 }
 
-func (text Text) ToBytes() ([]byte, error) {
-	return msgpack.Marshal(text.Content)
+func (text *Text) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(&text.Content)
 }
 
-func (text Text) ToJSON() ([]byte, error) {
-	return json.Marshal(text.Content)
+func (text *Text) ToJSON() ([]byte, error) {
+	return json.Marshal(&text.Content)
 }

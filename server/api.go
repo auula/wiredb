@@ -65,6 +65,7 @@ func init() {
 		zset.PUT("/:key", PutZsetController)
 		zset.DELETE("/:key", DeleteZsetController)
 	}
+
 	text := root.Group("/text")
 	{
 		text.GET("/:key", GetTextController)

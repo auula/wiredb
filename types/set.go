@@ -58,10 +58,10 @@ func (s *Set) Clear() {
 	s.Set = make(map[string]bool)
 }
 
-func (s Set) ToBytes() ([]byte, error) {
-	return msgpack.Marshal(s.Set)
+func (s *Set) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(&s.Set)
 }
 
-func (s Set) ToJSON() ([]byte, error) {
-	return json.Marshal(s.Set)
+func (s *Set) ToJSON() ([]byte, error) {
+	return json.Marshal(&s.Set)
 }

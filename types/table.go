@@ -100,10 +100,10 @@ func (tab *Table) Size() int {
 	return len(tab.Table)
 }
 
-func (tab Table) ToBytes() ([]byte, error) {
-	return msgpack.Marshal(tab.Table)
+func (tab *Table) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(&tab.Table)
 }
 
-func (tab Table) ToJSON() ([]byte, error) {
-	return json.Marshal(tab.Table)
+func (tab *Table) ToJSON() ([]byte, error) {
+	return json.Marshal(&tab.Table)
 }

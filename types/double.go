@@ -83,10 +83,10 @@ func (d *Double) String() string {
 }
 
 // BSON 序列化
-func (d Double) ToBytes() ([]byte, error) {
-	return msgpack.Marshal(d)
+func (d *Double) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(&d.Value)
 }
 
-func (d Double) ToJSON() ([]byte, error) {
-	return json.Marshal(d.Value)
+func (d *Double) ToJSON() ([]byte, error) {
+	return json.Marshal(&d.Value)
 }

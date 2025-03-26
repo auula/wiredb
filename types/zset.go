@@ -110,10 +110,10 @@ func (z *ZSet) Clear() {
 	z.sortedScores = make([]string, 0)
 }
 
-func (zs ZSet) ToBytes() ([]byte, error) {
-	return msgpack.Marshal(zs.ZSet)
+func (zs *ZSet) ToBytes() ([]byte, error) {
+	return msgpack.Marshal(&zs.ZSet)
 }
 
-func (zs ZSet) ToJSON() ([]byte, error) {
-	return json.Marshal(zs.ZSet)
+func (zs *ZSet) ToJSON() ([]byte, error) {
+	return json.Marshal(&zs.ZSet)
 }
