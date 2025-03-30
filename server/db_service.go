@@ -420,7 +420,7 @@ func QueryController(ctx *gin.Context) {
 	}
 
 	ctx.IndentedJSON(http.StatusOK, gin.H{
-		"type": vfs.KindToString[seg.Type],
+		"type": seg.GetTypeString(),
 		"data": seg.ToBytes(),
 		"ttl":  seg.TTL(),
 		"mvcc": version,
