@@ -421,6 +421,7 @@ func QueryController(ctx *gin.Context) {
 
 	ctx.IndentedJSON(http.StatusOK, gin.H{
 		"type": seg.GetTypeString(),
+		"key":  seg.GetKeyString(),
 		"data": seg.ToBytes(),
 		"ttl":  seg.TTL(),
 		"mvcc": version,
