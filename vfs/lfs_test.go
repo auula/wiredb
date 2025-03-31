@@ -242,7 +242,7 @@ func BenchmarkVFSWrite(b *testing.B) {
   }
 }
 `
-	var tables types.Table
+	tables := types.AcquireTable()
 	err = json.Unmarshal([]byte(data), &tables)
 	if err != nil {
 		b.Fatal(err)
@@ -255,7 +255,7 @@ func BenchmarkVFSWrite(b *testing.B) {
 		key := fmt.Sprintf("key-%d", i)
 
 		// 从复用池里创建
-		seg, err := AcquirePoolSegment(key, &tables, tables.TTL)
+		seg, err := AcquirePoolSegment(key, tables, tables.TTL)
 		if err != nil {
 			seg.ReleaseToPool()
 			b.Fatal(err)

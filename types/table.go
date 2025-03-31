@@ -16,6 +16,7 @@ package types
 
 import (
 	"encoding/json"
+	"sync"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -23,6 +24,31 @@ import (
 type Table struct {
 	Table map[string]any `json:"table" msgpack:"table" binding:"required"`
 	TTL   uint64         `json:"ttl,omitempty"`
+}
+
+var tablePool = sync.Pool{
+	New: func() any {
+		return NewTable()
+	},
+}
+
+func init() {
+	// 预先填充池中的对象，把对象放入池中
+	for i := 0; i < 10; i++ {
+		tablePool.Put(NewTable())
+	}
+}
+
+// 从对象池获取一个 Table
+func AcquireTable() *Table {
+	return tablePool.Get().(*Table)
+}
+
+// 释放 Table 归还到对象池
+func (tab *Table) ReleaseToPool() {
+	// 清理数据，避免脏数据影响复用
+	tab.Clear()
+	collectionPool.Put(tab)
 }
 
 // 新建一个 Table

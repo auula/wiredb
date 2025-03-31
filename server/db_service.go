@@ -37,8 +37,7 @@ func GetCollectionController(ctx *gin.Context) {
 
 	collection, err := seg.ToCollection()
 	if err != nil {
-		seg.ReleaseToPool()
-		collection.ReleaseToPool()
+		utils.ReleaseToPool(collection, seg)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
@@ -50,33 +49,30 @@ func GetCollectionController(ctx *gin.Context) {
 	})
 
 	// 使用完返回回去
-	seg.ReleaseToPool()
-	collection.ReleaseToPool()
+	utils.ReleaseToPool(collection, seg)
 }
 
 func PutCollectionController(ctx *gin.Context) {
 	key := ctx.Param("key")
 
 	collection := types.AcquireCollection()
-	err := ctx.ShouldBindJSON(&collection)
+	err := ctx.ShouldBindJSON(collection)
 	if err != nil {
-		collection.ReleaseToPool()
+		utils.ReleaseToPool(collection)
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	seg, err := vfs.AcquirePoolSegment(key, collection, collection.TTL)
 	if err != nil {
-		seg.ReleaseToPool()
-		collection.ReleaseToPool()
+		utils.ReleaseToPool(collection, seg)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
 	err = storage.PutSegment(key, seg)
 	if err != nil {
-		seg.ReleaseToPool()
-		collection.ReleaseToPool()
+		utils.ReleaseToPool(collection, seg)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -86,8 +82,7 @@ func PutCollectionController(ctx *gin.Context) {
 	})
 
 	// 放回到复用池里
-	seg.ReleaseToPool()
-	collection.ReleaseToPool()
+	utils.ReleaseToPool(collection, seg)
 }
 
 func DeleteCollectionController(ctx *gin.Context) {
@@ -114,8 +109,9 @@ func GetTableController(ctx *gin.Context) {
 		return
 	}
 
-	table, err := seg.ToTable()
+	tab, err := seg.ToTable()
 	if err != nil {
+		utils.ReleaseToPool(tab, seg)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
@@ -123,23 +119,25 @@ func GetTableController(ctx *gin.Context) {
 	}
 
 	ctx.IndentedJSON(http.StatusOK, gin.H{
-		"table": table.Table,
+		"table": tab.Table,
 	})
+
+	utils.ReleaseToPool(tab, seg)
 }
 
 func PutTableController(ctx *gin.Context) {
 	key := ctx.Param("key")
 
-	var table types.Table
-	err := ctx.ShouldBindJSON(&table)
+	tab := types.AcquireTable()
+	err := ctx.ShouldBindJSON(tab)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	seg, err := vfs.AcquirePoolSegment(key, &table, table.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, tab, tab.TTL)
 	if err != nil {
-		seg.ReleaseToPool()
+		utils.ReleaseToPool(tab, seg)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -150,12 +148,11 @@ func PutTableController(ctx *gin.Context) {
 		return
 	}
 
-	// 放回到复用池里
-	seg.ReleaseToPool()
-
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
 	})
+
+	utils.ReleaseToPool(tab, seg)
 }
 
 func DeleteTableController(ctx *gin.Context) {

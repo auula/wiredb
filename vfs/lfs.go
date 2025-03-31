@@ -56,7 +56,6 @@ const (
 
 var (
 	shard            = 10
-	pools            = int8(10)
 	fsPerm           = fs.FileMode(0755)
 	transformer      = NewTransformer()
 	fileExtension    = ".wdb"
@@ -64,10 +63,6 @@ var (
 	regionThreshold  = int64(1 * GB) // 1GB
 	dataFileMetadata = []byte{0xDB, 0x00, 0x01, 0x01}
 )
-
-func init() {
-	initSegmentPool(pools)
-}
 
 type Options struct {
 	Path      string

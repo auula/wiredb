@@ -30,14 +30,14 @@ type Collection struct {
 // 创建一个对象池
 var collectionPool = sync.Pool{
 	New: func() any {
-		return &Collection{}
+		return NewCollection()
 	},
 }
 
 func init() {
 	// 预先填充池中的对象，把对象放入池中
 	for i := 0; i < 10; i++ {
-		collectionPool.Put(&Collection{})
+		collectionPool.Put(NewCollection())
 	}
 }
 
@@ -53,7 +53,7 @@ func (cle *Collection) ReleaseToPool() {
 }
 
 func NewCollection() *Collection {
-	return AcquireCollection()
+	return new(Collection)
 }
 
 // AddItem 向 List 中添加新项目

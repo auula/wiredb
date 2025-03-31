@@ -61,15 +61,15 @@ type Segment struct {
 // Available segment in the pool
 var segmentPool = sync.Pool{
 	New: func() any {
-		return &Segment{}
+		return new(Segment)
 	},
 }
 
-func initSegmentPool(size int8) {
+func init() {
 	// 预先填充池中的对象
-	for i := 0; i < int(size); i++ {
+	for i := 0; i < 10; i++ {
 		// 把对象放入池中
-		segmentPool.Put(&Segment{})
+		segmentPool.Put(new(Segment))
 	}
 }
 
@@ -240,12 +240,12 @@ func (s *Segment) ToTable() (*types.Table, error) {
 	if s.Type != Table {
 		return nil, fmt.Errorf("not support conversion to table type")
 	}
-	var table types.Table
+	table := types.AcquireTable()
 	err := msgpack.Unmarshal(s.Value, &table.Table)
 	if err != nil {
 		return nil, err
 	}
-	return &table, nil
+	return table, nil
 }
 
 func (s *Segment) ToNumber() (*types.Number, error) {
