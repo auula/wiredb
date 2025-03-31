@@ -142,9 +142,9 @@ goos: darwin
 goarch: amd64
 pkg: github.com/auula/wiredb/vfs
 cpu: Intel(R) Core(TM) i5-7360U CPU @ 2.30GHz
-BenchmarkVFSWrite-4   	  130216	      9682 ns/op	    853 B/op	      21 allocs/op
+BenchmarkVFSWrite-4   	  173533	      7283 ns/op	     774 B/op	      20 allocs/op
 PASS
-ok  	github.com/auula/wiredb/vfs	2.544s
+ok  	github.com/auula/wiredb/vfs	2.806s
 ```
 
 在项目根目录下有一个 [`tools.sh`](./tools.sh) 的工具脚本文件，可以快速帮助完成各项辅助工作。

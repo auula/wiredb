@@ -64,6 +64,10 @@ var (
 	dataFileMetadata = []byte{0xDB, 0x00, 0x01, 0x01}
 )
 
+func init() {
+	initSegmentPool(100)
+}
+
 type Options struct {
 	Path      string
 	FSPerm    os.FileMode

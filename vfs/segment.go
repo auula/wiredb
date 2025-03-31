@@ -17,6 +17,7 @@ package vfs
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/auula/wiredb/types"
@@ -57,8 +58,66 @@ type Segment struct {
 	Value     []byte
 }
 
+// Available segment in the pool
+var segmentPool = sync.Pool{
+	New: func() interface{} {
+		return &Segment{}
+	},
+}
+
+func initSegmentPool(initialSize int8) {
+	// 预先填充池中的对象
+	for i := 0; i < int(initialSize); i++ {
+		// 把对象放入池中
+		segmentPool.Put(&Segment{})
+	}
+}
+
 type Serializable interface {
 	ToBytes() ([]byte, error)
+}
+
+func AcquirePoolSegment(key string, data Serializable, ttl uint64) (*Segment, error) {
+	seg := segmentPool.Get().(*Segment)
+	timestamp, expiredAt := uint64(time.Now().UnixNano()), uint64(0)
+	if ttl > 0 {
+		expiredAt = uint64(time.Now().Add(time.Second * time.Duration(ttl)).UnixNano())
+	}
+
+	bytes, err := data.ToBytes()
+	if err != nil {
+		segmentPool.Put(seg)
+		return nil, err
+	}
+
+	encodedata, err := transformer.Encode(bytes)
+	if err != nil {
+		segmentPool.Put(seg)
+		return nil, fmt.Errorf("transformer encode: %w", err)
+	}
+
+	// 只能这样初始化复用 segment 结构
+	seg.Type = toKind(data)
+	seg.Tombstone = 0
+	seg.CreatedAt = timestamp
+	seg.ExpiredAt = expiredAt
+	seg.KeySize = uint32(len(key))
+	seg.ValueSize = uint32(len(encodedata))
+	seg.Key = []byte(key)
+	seg.Value = encodedata
+
+	return seg, nil
+}
+
+func (s *Segment) ReleaseToPool() {
+	s.Key = nil
+	s.Value = nil
+	s.KeySize = 0
+	s.CreatedAt = 0
+	s.ExpiredAt = 0
+	s.ValueSize = 0
+	s.Tombstone = 0
+	segmentPool.Put(s)
 }
 
 // NewSegment 使用数据类型初始化并返回对应的 Segment

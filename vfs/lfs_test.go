@@ -254,15 +254,21 @@ func BenchmarkVFSWrite(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		key := fmt.Sprintf("key-%d", i)
 
-		seg, err := NewSegment(key, &tables, tables.TTL)
+		// 从复用池里创建
+		seg, err := AcquirePoolSegment(key, &tables, tables.TTL)
 		if err != nil {
+			seg.ReleaseToPool()
 			b.Fatal(err)
 		}
 
 		err = fss.PutSegment(key, seg)
 		if err != nil {
+			seg.ReleaseToPool()
 			b.Fatal(err)
 		}
+
+		// 使用完放回复用池里
+		seg.ReleaseToPool()
 	}
 }
 

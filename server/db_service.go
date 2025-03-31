@@ -58,8 +58,9 @@ func PutCollectionController(ctx *gin.Context) {
 		return
 	}
 
-	seg, err := vfs.NewSegment(key, &collection, collection.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, &collection, collection.TTL)
 	if err != nil {
+		seg.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -69,6 +70,9 @@ func PutCollectionController(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	// 放回到复用池里
+	seg.ReleaseToPool()
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
@@ -122,8 +126,9 @@ func PutTableController(ctx *gin.Context) {
 		return
 	}
 
-	seg, err := vfs.NewSegment(key, &table, table.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, &table, table.TTL)
 	if err != nil {
+		seg.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -133,6 +138,9 @@ func PutTableController(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	// 放回到复用池里
+	seg.ReleaseToPool()
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
@@ -186,8 +194,9 @@ func PutZsetController(ctx *gin.Context) {
 		return
 	}
 
-	seg, err := vfs.NewSegment(key, &zset, zset.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, &zset, zset.TTL)
 	if err != nil {
+		seg.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -197,6 +206,9 @@ func PutZsetController(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	// 放回到复用池里
+	seg.ReleaseToPool()
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
@@ -250,8 +262,9 @@ func PutTextController(ctx *gin.Context) {
 		return
 	}
 
-	seg, err := vfs.NewSegment(key, &text, text.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, &text, text.TTL)
 	if err != nil {
+		seg.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -261,6 +274,9 @@ func PutTextController(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	// 放回到复用池里
+	seg.ReleaseToPool()
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
@@ -314,8 +330,9 @@ func PutNumberController(ctx *gin.Context) {
 		return
 	}
 
-	seg, err := vfs.NewSegment(key, &number, number.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, &number, number.TTL)
 	if err != nil {
+		seg.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -325,6 +342,9 @@ func PutNumberController(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	// 放回到复用池里
+	seg.ReleaseToPool()
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
@@ -378,8 +398,9 @@ func PutSetController(ctx *gin.Context) {
 		return
 	}
 
-	seg, err := vfs.NewSegment(key, &set, set.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, &set, set.TTL)
 	if err != nil {
+		seg.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -389,6 +410,9 @@ func PutSetController(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	// 放回到复用池里
+	seg.ReleaseToPool()
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
