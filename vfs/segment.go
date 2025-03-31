@@ -191,36 +191,36 @@ func (s *Segment) ToSet() (*types.Set, error) {
 	if s.Type != Set {
 		return nil, fmt.Errorf("not support conversion to set type")
 	}
-	var set types.Set
+	set := types.AcquireSet()
 	err := msgpack.Unmarshal(s.Value, &set.Set)
 	if err != nil {
 		return nil, err
 	}
-	return &set, nil
+	return set, nil
 }
 
 func (s *Segment) ToZSet() (*types.ZSet, error) {
 	if s.Type != ZSet {
 		return nil, fmt.Errorf("not support conversion to zset type")
 	}
-	var zset types.ZSet
+	zset := types.AcquireZSet()
 	err := msgpack.Unmarshal(s.Value, &zset.ZSet)
 	if err != nil {
 		return nil, err
 	}
-	return &zset, nil
+	return zset, nil
 }
 
 func (s *Segment) ToText() (*types.Text, error) {
 	if s.Type != Text {
 		return nil, fmt.Errorf("not support conversion to text type")
 	}
-	var text types.Text
+	text := types.AcquireText()
 	err := msgpack.Unmarshal(s.Value, &text.Content)
 	if err != nil {
 		return nil, err
 	}
-	return &text, nil
+	return text, nil
 }
 
 func (s *Segment) ToCollection() (*types.Collection, error) {
@@ -252,12 +252,12 @@ func (s *Segment) ToNumber() (*types.Number, error) {
 	if s.Type != Number {
 		return nil, fmt.Errorf("not support conversion to number type")
 	}
-	var number types.Number
+	number := types.AcquireNumber()
 	err := msgpack.Unmarshal(s.Value, &number.Value)
 	if err != nil {
 		return nil, err
 	}
-	return &number, nil
+	return number, nil
 }
 
 func (s *Segment) TTL() int64 {

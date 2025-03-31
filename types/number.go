@@ -16,6 +16,7 @@ package types
 
 import (
 	"encoding/json"
+	"sync"
 	"sync/atomic"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -25,6 +26,31 @@ import (
 type Number struct {
 	Value int64  `json:"number" msgpack:"number" binding:"required"`
 	TTL   uint64 `json:"ttl,omitempty"`
+}
+
+// 创建一个对象池
+var numberPools = sync.Pool{
+	New: func() any {
+		return NewNumber(0)
+	},
+}
+
+func init() {
+	// 预先填充池中的对象，把对象放入池中
+	for i := 0; i < 10; i++ {
+		numberPools.Put(NewNumber(0))
+	}
+}
+
+// 从对象池获取一个 Number
+func AcquireNumber() *Number {
+	return numberPools.Get().(*Number)
+}
+
+// 释放 Number 归还到对象池
+func (num *Number) ReleaseToPool() {
+	num.Clear()
+	numberPools.Put(num)
 }
 
 func NewNumber(num int64) *Number {
@@ -73,4 +99,9 @@ func (num *Number) Get() int64 {
 // CompareAndSwap (CAS 操作) 仅当当前值等于 old 时，才设置为 new
 func (num *Number) CompareAndSwap(old, new int64) bool {
 	return atomic.CompareAndSwapInt64(&num.Value, old, new)
+}
+
+func (num *Number) Clear() {
+	num.TTL = 0
+	num.Value = 0
 }

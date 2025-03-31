@@ -26,7 +26,7 @@ type Table struct {
 	TTL   uint64         `json:"ttl,omitempty"`
 }
 
-var tablePool = sync.Pool{
+var tablePools = sync.Pool{
 	New: func() any {
 		return NewTable()
 	},
@@ -35,20 +35,20 @@ var tablePool = sync.Pool{
 func init() {
 	// 预先填充池中的对象，把对象放入池中
 	for i := 0; i < 10; i++ {
-		tablePool.Put(NewTable())
+		tablePools.Put(NewTable())
 	}
 }
 
 // 从对象池获取一个 Table
 func AcquireTable() *Table {
-	return tablePool.Get().(*Table)
+	return tablePools.Get().(*Table)
 }
 
 // 释放 Table 归还到对象池
 func (tab *Table) ReleaseToPool() {
 	// 清理数据，避免脏数据影响复用
 	tab.Clear()
-	collectionPool.Put(tab)
+	tablePools.Put(tab)
 }
 
 // 新建一个 Table

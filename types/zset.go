@@ -17,6 +17,7 @@ package types
 import (
 	"encoding/json"
 	"sort"
+	"sync"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -26,6 +27,27 @@ type ZSet struct {
 	ZSet         map[string]float64 `json:"zset" msgpack:"zset" binding:"required"`
 	TTL          uint64             `json:"ttl,omitempty"`
 	sortedScores []string
+}
+
+var zsetPools = sync.Pool{
+	New: func() any {
+		return NewZSet()
+	},
+}
+
+func init() {
+	for i := 0; i < 10; i++ {
+		zsetPools.Put(NewZSet())
+	}
+}
+
+func AcquireZSet() *ZSet {
+	return zsetPools.Get().(*ZSet)
+}
+
+func (z *ZSet) ReleaseToPool() {
+	z.Clear()
+	zsetPools.Put(z)
 }
 
 // NewZSet 创建一个新的 ZSet

@@ -28,7 +28,7 @@ type Collection struct {
 }
 
 // 创建一个对象池
-var collectionPool = sync.Pool{
+var collectionPools = sync.Pool{
 	New: func() any {
 		return NewCollection()
 	},
@@ -37,19 +37,19 @@ var collectionPool = sync.Pool{
 func init() {
 	// 预先填充池中的对象，把对象放入池中
 	for i := 0; i < 10; i++ {
-		collectionPool.Put(NewCollection())
+		collectionPools.Put(NewCollection())
 	}
 }
 
 // 从对象池获取一个 Collection
 func AcquireCollection() *Collection {
-	return collectionPool.Get().(*Collection)
+	return collectionPools.Get().(*Collection)
 }
 
 // 释放 Collection 归还到对象池
 func (cle *Collection) ReleaseToPool() {
 	cle.Clear() // 清理数据，避免脏数据影响复用
-	collectionPool.Put(cle)
+	collectionPools.Put(cle)
 }
 
 func NewCollection() *Collection {

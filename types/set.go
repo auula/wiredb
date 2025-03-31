@@ -16,6 +16,7 @@ package types
 
 import (
 	"encoding/json"
+	"sync"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -23,6 +24,27 @@ import (
 type Set struct {
 	Set map[string]bool `json:"set" msgpack:"set" binding:"required"`
 	TTL uint64          `json:"ttl,omitempty"`
+}
+
+var setPools = sync.Pool{
+	New: func() any {
+		return NewSet()
+	},
+}
+
+func init() {
+	for i := 0; i < 10; i++ {
+		zsetPools.Put(NewSet())
+	}
+}
+
+func AcquireSet() *Set {
+	return setPools.Get().(*Set)
+}
+
+func (s *Set) ReleaseToPool() {
+	s.Clear()
+	setPools.Put(s)
 }
 
 // 新建一个 Set

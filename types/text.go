@@ -17,6 +17,7 @@ package types
 import (
 	"encoding/json"
 	"strings"
+	"sync"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -24,6 +25,27 @@ import (
 type Text struct {
 	Content string `json:"content" msgpack:"content" binding:"required"`
 	TTL     uint64 `json:"ttl,omitempty"`
+}
+
+var textPools = sync.Pool{
+	New: func() any {
+		return NewText("")
+	},
+}
+
+func init() {
+	for i := 0; i < 10; i++ {
+		textPools.Put(NewText(""))
+	}
+}
+
+func AcquireText() *Text {
+	return textPools.Get().(*Text)
+}
+
+func (text *Text) ReleaseToPool() {
+	text.Clear()
+	textPools.Put(text)
 }
 
 func NewText(content string) *Text {
