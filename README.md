@@ -142,7 +142,7 @@ goos: darwin
 goarch: amd64
 pkg: github.com/auula/wiredb/vfs
 cpu: Intel(R) Core(TM) i5-7360U CPU @ 2.30GHz
-BenchmarkVFSWrite-4   	  130216	      9682 ns/op	    1757 B/op	      44 allocs/op
+BenchmarkVFSWrite-4   	  130216	      9682 ns/op	    853 B/op	      21 allocs/op
 PASS
 ok  	github.com/auula/wiredb/vfs	2.544s
 ```
