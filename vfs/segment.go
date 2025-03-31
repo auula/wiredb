@@ -60,14 +60,14 @@ type Segment struct {
 
 // Available segment in the pool
 var segmentPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return &Segment{}
 	},
 }
 
-func initSegmentPool(initialSize int8) {
+func initSegmentPool(size int8) {
 	// 预先填充池中的对象
-	for i := 0; i < int(initialSize); i++ {
+	for i := 0; i < int(size); i++ {
 		// 把对象放入池中
 		segmentPool.Put(&Segment{})
 	}
@@ -110,6 +110,11 @@ func AcquirePoolSegment(key string, data Serializable, ttl uint64) (*Segment, er
 }
 
 func (s *Segment) ReleaseToPool() {
+	s.Clear()
+	segmentPool.Put(s)
+}
+
+func (s *Segment) Clear() {
 	s.Key = nil
 	s.Value = nil
 	s.KeySize = 0
@@ -117,7 +122,6 @@ func (s *Segment) ReleaseToPool() {
 	s.ExpiredAt = 0
 	s.ValueSize = 0
 	s.Tombstone = 0
-	segmentPool.Put(s)
 }
 
 // NewSegment 使用数据类型初始化并返回对应的 Segment
@@ -223,12 +227,13 @@ func (s *Segment) ToCollection() (*types.Collection, error) {
 	if s.Type != Collection {
 		return nil, fmt.Errorf("not support conversion to collection type")
 	}
-	var collection types.Collection
+	collection := types.AcquireCollection()
 	err := msgpack.Unmarshal(s.Value, &collection.Collection)
 	if err != nil {
+		collection.ReleaseToPool()
 		return nil, err
 	}
-	return &collection, nil
+	return collection, nil
 }
 
 func (s *Segment) ToTable() (*types.Table, error) {

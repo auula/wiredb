@@ -17,6 +17,7 @@ package types
 import (
 	"encoding/json"
 	"errors"
+	"sync"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -26,8 +27,33 @@ type Collection struct {
 	TTL        uint64 `json:"ttl,omitempty"`
 }
 
+// 创建一个对象池
+var collectionPool = sync.Pool{
+	New: func() any {
+		return &Collection{}
+	},
+}
+
+func init() {
+	// 预先填充池中的对象，把对象放入池中
+	for i := 0; i < 10; i++ {
+		collectionPool.Put(&Collection{})
+	}
+}
+
+// 从对象池获取一个 Collection
+func AcquireCollection() *Collection {
+	return collectionPool.Get().(*Collection)
+}
+
+// 释放 Collection 归还到对象池
+func (cle *Collection) ReleaseToPool() {
+	cle.Clear() // 清理数据，避免脏数据影响复用
+	collectionPool.Put(cle)
+}
+
 func NewCollection() *Collection {
-	return new(Collection)
+	return AcquireCollection()
 }
 
 // AddItem 向 List 中添加新项目

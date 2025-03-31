@@ -37,6 +37,8 @@ func GetCollectionController(ctx *gin.Context) {
 
 	collection, err := seg.ToCollection()
 	if err != nil {
+		seg.ReleaseToPool()
+		collection.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
@@ -46,37 +48,46 @@ func GetCollectionController(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{
 		"collection": collection.Collection,
 	})
+
+	// 使用完返回回去
+	seg.ReleaseToPool()
+	collection.ReleaseToPool()
 }
 
 func PutCollectionController(ctx *gin.Context) {
 	key := ctx.Param("key")
 
-	var collection types.Collection
+	collection := types.AcquireCollection()
 	err := ctx.ShouldBindJSON(&collection)
 	if err != nil {
+		collection.ReleaseToPool()
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	seg, err := vfs.AcquirePoolSegment(key, &collection, collection.TTL)
+	seg, err := vfs.AcquirePoolSegment(key, collection, collection.TTL)
 	if err != nil {
 		seg.ReleaseToPool()
+		collection.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
 	err = storage.PutSegment(key, seg)
 	if err != nil {
+		seg.ReleaseToPool()
+		collection.ReleaseToPool()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	// 放回到复用池里
-	seg.ReleaseToPool()
-
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "request processed succeed.",
 	})
+
+	// 放回到复用池里
+	seg.ReleaseToPool()
+	collection.ReleaseToPool()
 }
 
 func DeleteCollectionController(ctx *gin.Context) {
