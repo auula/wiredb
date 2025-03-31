@@ -56,6 +56,7 @@ const (
 
 var (
 	shard            = 10
+	pools            = int8(100)
 	fsPerm           = fs.FileMode(0755)
 	transformer      = NewTransformer()
 	fileExtension    = ".wdb"
@@ -65,7 +66,7 @@ var (
 )
 
 func init() {
-	initSegmentPool(100)
+	initSegmentPool(pools)
 }
 
 type Options struct {
