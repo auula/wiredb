@@ -86,13 +86,13 @@ func AcquirePoolSegment(key string, data Serializable, ttl uint64) (*Segment, er
 
 	bytes, err := data.ToBytes()
 	if err != nil {
-		segmentPool.Put(seg)
+		seg.ReleaseToPool()
 		return nil, err
 	}
 
 	encodedata, err := transformer.Encode(bytes)
 	if err != nil {
-		segmentPool.Put(seg)
+		seg.ReleaseToPool()
 		return nil, fmt.Errorf("transformer encode: %w", err)
 	}
 
