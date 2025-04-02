@@ -67,7 +67,7 @@ var segmentPool = sync.Pool{
 
 func init() {
 	// 预先填充池中的对象
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 		// 把对象放入池中
 		segmentPool.Put(new(Segment))
 	}
@@ -109,9 +109,9 @@ func AcquirePoolSegment(key string, data Serializable, ttl uint64) (*Segment, er
 	return seg, nil
 }
 
-func (s *Segment) ReleaseToPool() {
-	s.Clear()
-	segmentPool.Put(s)
+func (seg *Segment) ReleaseToPool() {
+	seg.Clear()
+	segmentPool.Put(seg)
 }
 
 func (s *Segment) Clear() {
@@ -194,6 +194,7 @@ func (s *Segment) ToSet() (*types.Set, error) {
 	set := types.AcquireSet()
 	err := msgpack.Unmarshal(s.Value, &set.Set)
 	if err != nil {
+		set.ReleaseToPool()
 		return nil, err
 	}
 	return set, nil
@@ -206,6 +207,7 @@ func (s *Segment) ToZSet() (*types.ZSet, error) {
 	zset := types.AcquireZSet()
 	err := msgpack.Unmarshal(s.Value, &zset.ZSet)
 	if err != nil {
+		zset.ReleaseToPool()
 		return nil, err
 	}
 	return zset, nil
@@ -218,6 +220,7 @@ func (s *Segment) ToText() (*types.Text, error) {
 	text := types.AcquireText()
 	err := msgpack.Unmarshal(s.Value, &text.Content)
 	if err != nil {
+		text.ReleaseToPool()
 		return nil, err
 	}
 	return text, nil
@@ -243,6 +246,7 @@ func (s *Segment) ToTable() (*types.Table, error) {
 	table := types.AcquireTable()
 	err := msgpack.Unmarshal(s.Value, &table.Table)
 	if err != nil {
+		table.ReleaseToPool()
 		return nil, err
 	}
 	return table, nil
@@ -255,6 +259,7 @@ func (s *Segment) ToNumber() (*types.Number, error) {
 	number := types.AcquireNumber()
 	err := msgpack.Unmarshal(s.Value, &number.Value)
 	if err != nil {
+		number.ReleaseToPool()
 		return nil, err
 	}
 	return number, nil
