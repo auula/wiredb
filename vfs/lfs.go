@@ -698,6 +698,10 @@ func (lfs *LogStructuredFS) ExportSnapshotIndex() error {
 		return errors.New("index file metadata write incomplete")
 	}
 
+	// 这里后面的版本可以优化为并行任务导出
+	// 索引序列化不需要考虑有序的
+	// 但是存在并发写一个文件的竞争的问题，最后还是放弃并发方案
+	// 可以考虑多开几个文件并行导出，解决了单一文件写入的问题
 	for _, imap := range lfs.indexs {
 		imap.mu.RLock()
 		defer imap.mu.RUnlock()
