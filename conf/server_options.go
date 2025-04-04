@@ -42,7 +42,7 @@ const (
 		"region": {
 			"enable": true,
 			"cron": "0 0 3 * * *",
-			"threshold": 3
+			"threshold": 2
 		},
 		"encryptor": {
 			"enable": false,

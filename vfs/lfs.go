@@ -471,8 +471,18 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 	lfs.checkpointWorker = time.NewTicker(time.Duration(second) * time.Second)
 	lfs.mu.Unlock()
 
+	var chkptState bool = false
+
 	go func() {
 		for range lfs.checkpointWorker.C {
+			// 上一个检查点还在生成就跳过本次的
+			if chkptState {
+				continue
+			}
+
+			// Toggle checkpoint state
+			chkptState = !chkptState
+
 			// 只有数据文件大于 2 个，才生成快速恢复的检查点
 			if len(lfs.regions) >= 2 {
 				ckpt := checkpointFileName(lfs.regionID)
