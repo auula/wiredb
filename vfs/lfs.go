@@ -492,6 +492,7 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 				fd, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, fsPerm)
 				if err != nil {
 					clog.Errorf("failed to generate index checkpoint file: %v", err)
+					chkptState = !chkptState
 					continue
 				}
 
@@ -499,11 +500,13 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 				n, err := fd.Write(dataFileMetadata)
 				if err != nil {
 					clog.Errorf("failed to write checkpoint file metadata: %v", err)
-					return
+					chkptState = !chkptState
+					continue
 				}
 				if n != len(dataFileMetadata) {
 					clog.Errorf("checkpoint file metadata write incomplete")
-					return
+					chkptState = !chkptState
+					continue
 				}
 
 				// 遍历 indexs 确保锁的粒度更小
@@ -514,11 +517,14 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 						bytes, err := serializedIndex(inum, inode)
 						if err != nil {
 							clog.Errorf("failed to serialize index (inum: %d): %v", inum, err)
+							chkptState = !chkptState
 							continue
 						}
 						_, err = fd.Write(bytes)
 						if err != nil {
 							clog.Errorf("failed to write serialized index (inum: %d): %v", inum, err)
+							chkptState = !chkptState
+							continue
 						}
 					}
 					imap.mu.RUnlock()
@@ -528,7 +534,8 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 				err = utils.FlushToDisk(fd)
 				if err != nil {
 					clog.Errorf("failed to generated checkpoint file: %v", err)
-					return
+					chkptState = !chkptState
+					continue
 				}
 
 				clog.Infof("generated checkpoint file (%s) successfully", ckpt)
