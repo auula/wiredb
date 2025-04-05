@@ -57,7 +57,7 @@ root@2c2m:~# docker logs 66ae91bc73a6
                          _            ____
                  _    __(_)______ ___/ / /
                 | |/|/ / / __/ -_) _  / _ \
-                |__,__/_/_/  \__/\_,_/_.__/  v1.1.1
+                |__,__/_/_/  \__/\_,_/_.__/  v1.1.2
 
   WireDB is a NoSQL database based on Log-structured file system.
   Software License: Apache 2.0  Website: https://wiredb.github.io
