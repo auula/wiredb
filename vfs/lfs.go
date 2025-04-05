@@ -477,6 +477,7 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 		for range lfs.checkpointWorker.C {
 			// 上一个检查点还在生成就跳过本次的
 			if chkptState {
+				clog.Warn(chkptState)
 				continue
 			}
 
@@ -484,7 +485,7 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 			chkptState = !chkptState
 
 			// 只有数据文件大于 2 个，才生成快速恢复的检查点
-			if len(lfs.regions) >= 2 {
+			if len(lfs.regions) >= 1 {
 				ckpt := checkpointFileName(lfs.regionID)
 				path := filepath.Join(lfs.directory, ckpt)
 
@@ -537,6 +538,9 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 				if err != nil {
 					clog.Warnf("failed to cleanup old checkpoint file: %v", err)
 				}
+
+				// Toggle checkpoint state
+				chkptState = !chkptState
 
 			} else {
 				clog.Warnf("regions (%d%%) does not meet generated checkpoint status", len(lfs.regions)/10)
