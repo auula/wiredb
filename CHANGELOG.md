@@ -4,7 +4,7 @@
 
 ### Added
 
-- 🎉 针对 checkpoint 功能做出改进，以加速崩溃恢复过程中的启动速度，修复 `checkpoint` 生成过程中突然中断后的数据一致性问题。
+- 🎉 针对 checkpoint 功能做出改进，以加速崩溃恢复过程中的启动速度，解决 checkpoint 生成过程中突然中断后恢复数据一致性问题。
 
 ### Fixed
 - 🚄 修复 `checkpoint` 并发状态同步问题。

@@ -477,7 +477,6 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 		for range lfs.checkpointWorker.C {
 			// 上一个检查点还在生成就跳过本次的
 			if chkptState {
-				clog.Warn(chkptState)
 				continue
 			}
 
