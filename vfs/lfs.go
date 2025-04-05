@@ -485,7 +485,7 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 			chkptState = !chkptState
 
 			// 只有数据文件大于 2 个，才生成快速恢复的检查点
-			if len(lfs.regions) >= 1 {
+			if len(lfs.regions) >= 2 {
 				ckpt := checkpointFileName(lfs.regionID)
 				path := filepath.Join(lfs.directory, ckpt)
 
@@ -501,11 +501,13 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 				if err != nil {
 					clog.Errorf("failed to write checkpoint file metadata: %v", err)
 					chkptState = !chkptState
+					_ = utils.FlushToDisk(fd)
 					continue
 				}
 				if n != len(dataFileMetadata) {
-					clog.Errorf("checkpoint file metadata write incomplete")
+					clog.Warnf("checkpoint file metadata write incomplete")
 					chkptState = !chkptState
+					_ = utils.FlushToDisk(fd)
 					continue
 				}
 
@@ -516,14 +518,13 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 					for inum, inode := range imap.index {
 						bytes, err := serializedIndex(inum, inode)
 						if err != nil {
-							clog.Errorf("failed to serialize index (inum: %d): %v", inum, err)
-							chkptState = !chkptState
+							clog.Warnf("failed to serialize index (inum: %d): %v", inum, err)
 							continue
 						}
+
 						_, err = fd.Write(bytes)
 						if err != nil {
 							clog.Errorf("failed to write serialized index (inum: %d): %v", inum, err)
-							chkptState = !chkptState
 							continue
 						}
 					}
@@ -538,10 +539,20 @@ func (lfs *LogStructuredFS) RunCheckpoint(second uint32) {
 					continue
 				}
 
-				clog.Infof("generated checkpoint file (%s) successfully", ckpt)
+				// 使用 strings.TrimSuffix 去掉 .tmp 后缀，然后加上 .ids 后缀
+				newckpt := strings.TrimSuffix(ckpt, ".tmp") + ".ids"
+				err = os.Rename(filepath.Join(lfs.directory, ckpt), filepath.Join(lfs.directory, newckpt))
+				if err != nil {
+					clog.Errorf("failed to rename checkpoint temp file: %v", err)
+					chkptState = !chkptState
+					_ = utils.FlushToDisk(fd)
+					continue
+				}
+
+				clog.Infof("generated checkpoint file (%s) successfully", newckpt)
 
 				// 滚动 checkpoint 文件确保只保留 1 份快照
-				err = cleanupDirtyCheckpoint(lfs.directory, ckpt)
+				err = cleanupDirtyCheckpoint(lfs.directory, newckpt)
 				if err != nil {
 					clog.Warnf("failed to cleanup old checkpoint file: %v", err)
 				}
@@ -1070,7 +1081,7 @@ func formatDataFileName(number uint64) string {
 }
 
 func checkpointFileName(regionID uint64) string {
-	return fmt.Sprintf("ckpt.%d.%d.ids", time.Now().Unix(), regionID)
+	return fmt.Sprintf("ckpt.%d.%d.tmp", time.Now().Unix(), regionID)
 }
 
 // serializedIndex serializes the index to a recoverable file snapshot record format:
@@ -1345,8 +1356,20 @@ func cleanupDirtyCheckpoint(directory, newCheckpoint string) error {
 		if filepath.Base(file) != newCheckpoint {
 			err := os.Remove(file)
 			if err != nil {
-				return fmt.Errorf("deleted old checkpoint: %s", err)
+				return fmt.Errorf("deleted old checkpoint file: %s", err)
 			}
+		}
+	}
+
+	tmps, err := filepath.Glob(filepath.Join(directory, "*.tmp"))
+	if err != nil {
+		return err
+	}
+
+	for _, file := range tmps {
+		err := os.Remove(file)
+		if err != nil {
+			return fmt.Errorf("deleted old temp checkpoint file: %s", err)
 		}
 	}
 
