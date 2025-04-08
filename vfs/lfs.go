@@ -225,15 +225,20 @@ func (lfs *LogStructuredFS) FetchSegment(key string) (uint64, *Segment, error) {
 	return atomic.LoadUint64(&inode.mvcc), segment, nil
 }
 
-// KeysCount 不能实时展示内存中活跃存活的 Key 数量
-// 因为存储惰性删除策略，还是要定期去扫描索引清理索引
-// 存在一些时间窗口的问题
+// KeysCount iterate over each index in lfs.indexs.
 func (lfs *LogStructuredFS) KeysCount() int {
 	keys := 0
 	for _, imap := range lfs.indexs {
-		imap.mu.RLock()
-		keys += len(imap.index)
-		imap.mu.RUnlock()
+		imap.mu.Lock()
+		for key, inode := range imap.index {
+			// Clean expired inode
+			if inode.ExpiredAt <= uint64(time.Now().UnixNano()) && inode.ExpiredAt != 0 {
+				delete(imap.index, key)
+			} else {
+				keys += 1
+			}
+		}
+		imap.mu.Unlock()
 	}
 	return keys
 }
