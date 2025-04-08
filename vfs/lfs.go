@@ -95,7 +95,7 @@ type LogStructuredFS struct {
 	active           *os.File
 	regions          map[uint64]*os.File
 	gcstate          GC_STATE
-	cronJob          *cron.Cron
+	compactTask      *cron.Cron
 	dirtyRegions     []*os.File
 	checkpointWorker *time.Ticker
 }
@@ -587,17 +587,17 @@ func (lfs *LogStructuredFS) StopCheckpoint() {
 // RunCompactRegion 使用 robfig/cron 调度垃圾回收
 func (lfs *LogStructuredFS) RunCompactRegion(schedule string) error {
 	lfs.mu.Lock()
-	if lfs.gcstate != GC_INIT || lfs.cronJob != nil {
+	if lfs.compactTask != nil {
 		lfs.mu.Unlock()
 		return fmt.Errorf("region compact is already running: %v", lfs.gcstate)
 	}
 
 	// 初始化 cron 任务
-	lfs.cronJob = cron.New(cron.WithSeconds())
+	lfs.compactTask = cron.New(cron.WithSeconds())
 	lfs.mu.Unlock()
 
 	// 添加定时任务
-	_, err := lfs.cronJob.AddFunc(schedule, func() {
+	_, err := lfs.compactTask.AddFunc(schedule, func() {
 		lfs.mu.Lock()
 		lfs.gcstate = GC_ACTIVE
 		lfs.mu.Unlock()
@@ -616,8 +616,8 @@ func (lfs *LogStructuredFS) RunCompactRegion(schedule string) error {
 		return err
 	}
 
-	// 启动定时任务
-	lfs.cronJob.Start()
+	// 启动定时清理 Region 区域的任务
+	lfs.compactTask.Start()
 	return nil
 }
 
@@ -626,9 +626,9 @@ func (lfs *LogStructuredFS) StopCompactRegion() {
 	lfs.mu.Lock()
 	defer lfs.mu.Unlock()
 
-	if lfs.cronJob != nil {
-		lfs.cronJob.Stop()
-		lfs.cronJob = nil
+	if lfs.compactTask != nil {
+		lfs.compactTask.Stop()
+		lfs.compactTask = nil
 		lfs.gcstate = GC_INIT
 	}
 }
@@ -660,7 +660,7 @@ func OpenFS(opt *Options) (*LogStructuredFS, error) {
 		regionID:         0,
 		directory:        opt.Path,
 		gcstate:          GC_INIT,
-		cronJob:          nil,
+		compactTask:      nil,
 		checkpointWorker: nil,
 	}
 
